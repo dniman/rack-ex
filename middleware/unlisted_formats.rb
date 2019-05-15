@@ -14,7 +14,7 @@ class UnlistedFormats
 
     return @app.call env if unlisted_formats(request).empty?
   
-    [400, { 'Content-Type' => "text/plain" }, ["Unknown time format [#{unlisted_formats.join(',')}"]]
+    [400, { 'Content-Type' => "text/plain" }, ["Unknown time format [#{unlisted_formats(request).join(',')}]"]]
   end
 
   def unlisted_formats(request)
