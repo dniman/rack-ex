@@ -1,30 +1,36 @@
 # app.rb
-require './utils'
+require './time_formatter'
 
 class App
-  include Utils
 
   def call(env)
     request = Rack::Request.new(env)
-    
+    time_fmt = TimeFormatter.new(request.params['format']) 
+   
     if request.get? 
-      [200, { 'Content-Type' => 'text/plain' }, [formatted_time(request)]]
+      case request.path
+      when '/time'
+        time_response(time_fmt)
+      else
+        not_found_response
+      end
+    else
+      not_found_response
     end
   end
 
   private
 
-  def template
-    @template ||= []
+  def time_response(formatter)
+    if formatter.success_format?
+      [200, { 'Content-Type' => 'text/plain' }, [formatter.formatted_time]]
+    else
+      [400, { 'Content-Type' => 'text/plain' }, ["Unknown time format [#{formatter.unknown_formats.join(',')}]"]]
+    end
   end
 
-  def format_template(formats)
-    template << "%F" if formats.include?("year") && formats.include?("month") && formats.include?("day")
-    template << "%T" if formats.include?("hour") && formats.include?("minute") && formats.include?("second")
-    template.join(' ')
+  def not_found_response
+    [404, { 'Content-Type' => 'text/plain' }, [ Rack::Utils::HTTP_STATUS_CODES[404] ]]
   end
 
-  def formatted_time(request)
-    Time.now.strftime format_template(format_param(request))
-  end
 end
